@@ -10,10 +10,18 @@ import logging
 import math
 import os
 import re
+import ssl
 import sys
 import urllib
 import urllib2
 
+# Ignore invalid SSL certificate errors.
+# Raspberry Pis rely on the network connection to set time with NTP. However if the
+# time is set wrong then SSL certificates won't validate. This allows the Pi to
+# connect, even if the time is not yet set correctly.
+context = ssl.create_default_context()
+context.check_hostname = False
+context.verify_mode = ssl.CERT_NONE
 
 # URL to test whether we're logged in. This needs to be a URL that doesn't result in a redirect.
 TEST_URL = 'http://www.apple.com'
@@ -73,7 +81,7 @@ def uncompress_possibly_gzipped_response(response):
 def get_cookies_and_login_url_from_login_page(login_page_url):
     cookies = cookielib.LWPCookieJar()
     handlers = [
-        urllib2.HTTPSHandler(),
+        urllib2.HTTPSHandler(context=context),
         urllib2.HTTPCookieProcessor(cookies),
         ]
     opener = urllib2.build_opener(*handlers)
@@ -92,7 +100,7 @@ def get_cookies_and_login_url_from_login_page(login_page_url):
 
 def login(login_url, cookies, referrer):
     handlers = [
-        urllib2.HTTPSHandler(),
+        urllib2.HTTPSHandler(context=context),
         urllib2.HTTPCookieProcessor(cookies),
         ]
     opener = urllib2.build_opener(*handlers)
