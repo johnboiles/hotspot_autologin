@@ -28,7 +28,7 @@ TEST_URL = 'http://www.apple.com'
 # Content in the TEST_URL, to make sure we ultimately loaded the real thing and not a redirect.
 TEST_URL_CONTENT = r'<meta name="Author" content="Apple Inc." />'
 # Regex for finding the login URL from the login page
-LOGIN_URL_REGEX = r'<div id="button_content"><a href="(.*)" title="Continue to the Internet" id="continue_link">Continue to the Internet</a></div>'
+LOGIN_URL_REGEX = r'<div id="button_content"><a href="([^"]*)"'
 # Some headers to impersonate a browser. It seems like without these, the server doesn't trust us.
 HEADERS = \
 (('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36'),
