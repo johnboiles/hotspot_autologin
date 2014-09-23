@@ -172,13 +172,15 @@ def cron_thyself(original_arguments=[]):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Automatically logs into hotspots that have a login/agreement page.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--log', help='Set log level to DEBUG, INFO, WARNING, or ERROR', default='INFO')
+    parser.add_argument('--loglevel', help='Set log level to DEBUG, INFO, WARNING, or ERROR', default='INFO')
+    parser.add_argument('--logfile', help='Log file to append to.',)
     parser.add_argument('--retries', help='Number of times to retry.', type=int, default=0)
     parser.add_argument('--noexpwait', help="Don't exponentially increase the retry time.", action='store_true')
     parser.add_argument('--retrytime', help='Time to wait between retries (in seconds). Unless --noexpwait is specified, this is only the wait time for the first retry.', type=int, default=DEFAULT_WAIT_TIME)
     parser.add_argument('--cron', help="If provided, the script will automatically attempt to re-cron itself after 24 hours.", action='store_true')
     args = parser.parse_args()
-    log_level = args.log
+    log_level = args.loglevel
+    log_file = args.logfile
     retries = args.retries
     total_retries = retries
     no_exp_wait = args.noexpwait
@@ -188,7 +190,7 @@ if __name__ == '__main__':
     numeric_log_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_log_level, int):
         raise ValueError('Invalid log level: %s' % log_level)
-    logging.basicConfig(level=numeric_log_level, format='%(asctime)s %(levelname)s:%(message)s')
+    logging.basicConfig(level=numeric_log_level, format='%(asctime)s %(levelname)s:%(message)s', filename=log_file)
 
     while True:
         try:
