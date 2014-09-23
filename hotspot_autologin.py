@@ -10,6 +10,7 @@ import logging
 import math
 import os
 import re
+import sys
 import urllib
 import urllib2
 
@@ -141,25 +142,31 @@ def login_to_wifi():
 def get_script_path_and_name():
     filename = inspect.getfile(inspect.currentframe()) # script filename (usually with path)
     path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
-    return path, filename
+    return path, os.path.split(filename)[1]
 
 
-def cron_thyself():
+def cron_thyself(original_arguments=[]):
     # Get the current time
     now = datetime.datetime.now()
     path, filename = get_script_path_and_name()
     from crontab import CronTab
     logging.info('Cron scheduling %s to happen in 24 hours (minute: %d hour: %d)' % (filename, now.minute, now.hour))
-    cron  = CronTab(user=True)
+    cron = CronTab(user=True)
     jobs = cron.find_command(filename)
     jobs = [job for job in jobs]
-    if len(jobs) > 1:
-        logging.warn("More than 1 cron lines for %s" % filename)
-    logging.debug('Current cron jobs are: %s' % jobs)
-    job = jobs[0]
+    logging.debug('Existing cron jobs are: %s' % jobs)
+    # If no job already exists, create one
+    if not jobs:
+        command = os.path.join(path, filename) + ' ' + ' '.join(original_arguments[1:])
+        logging.info("No existing job detected. Creating a new one")
+        job = cron.new(command, "Automatically log into hotspot every 24 hours.")
+    else:
+        if len(jobs) > 1:
+            logging.warn("More than 1 cron lines for %s. Using the first one." % filename)
+        job = jobs[0]
     job.minute.on(now.minute)
     job.hour.on(now.hour)
-    logging.info('Writing Cron: %s' % job)
+    logging.info('Writing Cron job: %s' % job)
     cron.write()
 
 
@@ -188,7 +195,7 @@ if __name__ == '__main__':
             logged_in = login_to_wifi()
             if logged_in:
                 if cron:
-                    cron_thyself()
+                    cron_thyself(sys.argv)
                 break
         except Exception as error:
             logging.error(error)
