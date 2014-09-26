@@ -160,11 +160,15 @@ def cron_thyself(original_arguments=[]):
         command = os.path.join(path, filename) + ' ' + ' '.join(original_arguments[1:])
         logging.info("No existing job detected. Creating a new one")
         job = cron.new(command, "Automatically log into hotspot every 24 hours.")
+        # If we create a new job for this exact minute, then the job will run immediately after we create it.
+        # Instead create the job for the past minute.
+        minute = now.minute - 1
     else:
         if len(jobs) > 1:
             logging.warn("More than 1 cron lines for %s. Using the first one." % filename)
         job = jobs[0]
-    job.minute.on(now.minute)
+        minute = now.minute
+    job.minute.on(minute)
     job.hour.on(now.hour)
     logging.info('Writing Cron job: %s' % job)
     cron.write()
